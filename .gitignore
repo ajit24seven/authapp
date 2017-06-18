@@ -1,1 +1,3 @@
 node_modules/*
+authapp-src/bower_components/*
+authapp-src/node_modules/*
