@@ -34,10 +34,10 @@ export class RegisterComponent implements OnInit {
 
     this.authService.registerUser(user).subscribe(data => {
       if(data.success){
-        this.toastr.success('You are now registered and can login', 'Success!');
+        this.toastr.success(data.msg, 'Success!');
         this.router.navigate(['/login'])
       }else{
-        this.toastr.error('Something went wrong', 'Oops!!');
+        this.toastr.error(data.msg, 'Oops!');
         this.router.navigate(['/register'])
       }
     });

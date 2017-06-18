@@ -15,13 +15,22 @@ router.post("/register", (req, res, next)=>{
         password:req.body.password
     });
 
-    User.addUser(newUser, (err, user)=>{
-        if(err){
-            res.json({success:false, msg:"Faild to register user"});
-        }else{
-            res.json({success:true, msg:"User Registered"});
+
+    User.checkExistUser(newUser.username, (err, user)=>{
+        if(user.length > 0){
+            res.json({success:false, msg: '"'+user[0].username+'"'+" user name already exist"});
         }
-    });
+        else{
+            User.addUser(newUser, (err, user)=>{
+                if(err){
+                    res.json({success:false, msg:"Faild to register user"});
+                }else{
+                    res.json({success:true, msg:"User Registered"});
+                }
+            });
+        }
+    })
+    
 });
 /*
 router.get("/register", (req, res, next)=>{
