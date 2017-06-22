@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-const config = require("../config/database");
+const config = require("../../config/database");
+
 //User Model
-const User = require("../models/user");
+const User = require("../../server/user/user.model");
 
 //REGISTER ROUTE
 router.post("/register", (req, res, next)=>{
@@ -53,7 +54,7 @@ router.post("/authenticate", (req, res, next)=>{
             if(err) throw err;
             if(isMatch){
                 const token = jwt.sign(user, config.secret, {
-                    expiresIn:"1m"  //1 week
+                    expiresIn:45554  //1 week
                 });
                 res.json({
                     success:true,
