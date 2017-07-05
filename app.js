@@ -6,6 +6,10 @@ const passport = require("passport");
 const mongoose = require("mongoose");
 const config = require("./config/database");
 
+
+
+
+const fileUpload = require("./server/upload/upload");
 const users = require("./server/user/user.route");
 const recipes = require("./server/recipe/recipe.route");
 
@@ -32,6 +36,7 @@ const port = 3000;
 app.use(cors());
 
 //Set Static Folder
+app.use('/uploads',express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, "public")));
 
 //Body Parser Middleware
@@ -43,7 +48,13 @@ app.use(passport.session());
 require("./config/passport")(passport);
 
 app.use("/users", users);
-app.use("/recipe", recipes)
+app.use("/recipe", recipes);
+app.use("/upload", fileUpload);
+
+
+
+
+
 
 //Index Route
 app.get("/",(req, res) => {

@@ -13,11 +13,11 @@
         <div class="thumbnail" style="overflow:hidden">
           <div style="overflow:hidden"> 
           <a [routerLink]="[recipe._id]">
-          <img style="min-width:370px; max-height: 275px;"  src="{{recipe.recipe_image}}" alt="...">
+          <img style="min-width:370px; max-height: 275px;"  src="{{recipe.recipeImage}}" alt="...">
           </a>          
           <div class="caption">
             <h3>{{recipe.name}}</h3>
-            <p>{{recipe.recipe_description}}</p>
+            <p>{{recipe.recipeDescription}}</p>
             <div *ngIf="authService.loggedIn()">
               <button class="btn btn-success" [routerLink]="[recipe._id,'edit']" role="button">Edit Recipe</button> 
               <button class="btn btn-danger" (click)="deleteRecipeItem(recipe._id)" role="button">Delete Recipe</button> 

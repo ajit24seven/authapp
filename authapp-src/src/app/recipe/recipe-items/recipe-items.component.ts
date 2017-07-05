@@ -19,7 +19,7 @@ export class RecipeItemsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-      this.recipeService.getRecipe().subscribe(data => {
+      this.recipeService.getRecipes().subscribe(data => {
           this.recipes = data.recipe;
       },
       err => {
@@ -30,24 +30,17 @@ export class RecipeItemsComponent implements OnInit {
   };
 
   deleteRecipeItem(id){
-    
-     
-
     this.recipeService.deleteRecipe(id).subscribe(data => {
-    this.router.navigate(['/recipe']);
-     this.recipes.forEach(function(element, index, array){
+    this.recipes.forEach(function(element, index, array){
         if(array[index]._id==id){
               array.splice(index,1);
         }
       });
+      this.router.navigate(['/recipe']);
     },
       err => {
           console.log(err);
           return false;
-      });
-
-      
+      });  
+    }
   }
- 
-  
-}

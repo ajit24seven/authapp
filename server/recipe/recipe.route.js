@@ -6,11 +6,12 @@ const config = require("../../config/database");
 const Recipe = require("../../server/recipe/recipe.model");
 
 router.post("/recipe", (req, res, next)=>{
+    
     let newRecipe = new Recipe({
         name:req.body.name,
-        recipe_image:req.body.recipeImage,
-        recipe_description:req.body.recipeDescription,
-        recipe_preparation_time:req.body.recipePreparation_time
+        recipeImage:req.body.recipeImage,
+        recipeDescription:req.body.recipeDescription,
+        recipePreparationTime:req.body.recipePreparationTime
     });
 
 
@@ -35,7 +36,8 @@ router.get("/recipe", (req, res, next)=>{
 });
 
 router.get("/recipe/:id", (req, res, next)=>{
-     Recipe.getRecipes((err, recipe)=>{
+    let id = req.params.id;
+     Recipe.getRecipe(id, (err, recipe)=>{
         if(err){
             res.json({success:false, msg:"Faild to register user"});
         }else{
@@ -55,5 +57,6 @@ router.delete("/recipe/:id", (req, res, next)=>{
         }
     })
 });
+
 
 module.exports = router; 

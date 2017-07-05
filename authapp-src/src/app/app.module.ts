@@ -22,6 +22,8 @@ import { RecipeItemsComponent } from './recipe/recipe-items/recipe-items.compone
 import { RecipeDetailsComponent } from './recipe/recipe-details/recipe-details.component';
 import { RecipeNewComponent } from './recipe/recipe-new/recipe-new.component';
 import { RecipeEditComponent } from './recipe/recipe-edit/recipe-edit.component';
+import { FileSelectDirective, FileDropDirective } from 'ng2-file-upload';
+import { FileUploadComponent } from './file-upload/file-upload.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +39,10 @@ import { RecipeEditComponent } from './recipe/recipe-edit/recipe-edit.component'
     RecipeItemsComponent,
     RecipeDetailsComponent,
     RecipeNewComponent,
-    RecipeEditComponent
+    RecipeEditComponent,
+    FileSelectDirective,
+    FileUploadComponent
+
   ],
   imports: [
     BrowserModule,

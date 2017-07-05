@@ -12,12 +12,17 @@ export class RecipeService{
         return this.http.post("http://localhost:3000/recipe/recipe", newRecipe, {headers:headers})
         .map(res => res.json());        
     }
-    getRecipe(){
+    getRecipes(){
         return this.http.get("http://localhost:3000/recipe/recipe")
         .map(res => res.json());
     }
+    
+    getRecipe(id){
+        return this.http.get("http://localhost:3000/recipe/recipe/"+id)
+        .map(res => res.json());
+    }
 
-     deleteRecipe(id){
+    deleteRecipe(id){
         return this.http.delete("http://localhost:3000/recipe/recipe/"+id)
         .map(res => res.json());
     }

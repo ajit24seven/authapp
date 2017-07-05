@@ -1,66 +1,79 @@
 <div class="container">
-<div class="row">
-            <div class="col-md-6 col-md-offset-3">
-                <div class="login-panel panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Please Sign Up</h3>
-                    </div>
-                    <div class="panel-body">
-                        <form role="form" (ngSubmit)="onSubmitNewRecipe(f)" #f="ngForm" >
-                            <fieldset>
-                               <div class="form-group">
-                                    <input 
-                                    class="form-control" 
-                                    placeholder="Name" 
-                                    id="name" 
-                                    name="name" 
-                                    ngModel 
-                                    type="text" 
-                                    #name="ngModel"
-                                    required >
-                                    <p class="help-block invalid" *ngIf="!name.valid && name.touched" >Please enter name</p>
-                                </div>
-                                <div class="form-group">
-                                    <input class="form-control" 
-                                      placeholder="recipe image" 
-                                      id="recipeImage" 
-                                      name="recipeImage" 
-                                      ngModel 
-                                      type="file" 
-                                      #recipeImage="ngModel"
-                                     >
-                                    <p class="help-block invalid" *ngIf="! recipeImage.valid && recipeImage.touched" >Please enter username</p>
-                                </div>
-                                <div class="form-group">
-                                    <textarea 
-                                      class="form-control" 
-                                      placeholder="recipeDescription" 
-                                      id="recipeDescription" 
-                                      name="recipeDescription" 
-                                      ngModel 
-                                      required
-                                      #recipeDescription="ngModel"
-                                     >
-                                    </textarea>
-                                    <p class="help-block invalid" *ngIf="!recipeDescription.valid && recipeDescription.touched" >Please enter a valid email!</p>
-                                </div>
-                                <div class="form-group">
-                                    <input class="form-control" 
-                                    placeholder="Preparation Time" 
-                                    id="recipePreparationTime" 
-                                    name="recipePreparationTime" 
-                                    ngModel 
-                                    type="number" 
-                                    #recipePreparationTime="ngModel"
-                                    required>
-                                    <p class="help-block invalid" *ngIf="!recipePreparationTime.valid && recipePreparationTime.touched" >Please enter password</p>
-                                </div>
-                                <!-- Change this to a button or input when using this as a form -->
-                                <button type="submit" class="btn btn-lg btn-success btn-block" [disabled] = "!f.valid" >Sign Up</button>
-                            </fieldset>
-                        </form>
-                    </div>
-                </div>
+   <div class="row">
+      <div class="col-md-9 col-md-offset-1">
+         <div class="login-panel panel panel-default">
+            <div class="panel-heading">
+               <h3 class="panel-title">Please Sign Up</h3>
             </div>
-        </div>
+            <div class="panel-body">
+               <form role="form" (ngSubmit)="onSubmitNewRecipe(f)" #f="ngForm" >
+               <div class="row">
+                  <div class="col-md-4">
+                     <div class="thumbnail">
+                        <img alt="100%x200" data-src="holder.js/100%x200" src="{{filePaths}}" data-holder-rendered="true" style="height: 200px; width: 100%; display: block;"> 
+                        <input type="file" class="form-control" name="single" ng2FileSelect [uploader]="uploader" filetypefilter="video"  /> 
+                        <div class="caption" *ngFor="let item of uploader.queue">
+                           <div class="progress" style="margin-bottom: 0;">
+                              <div class="progress-bar" role="progressbar" [ngStyle]="{ 'width': item.progress + '%' }"></div>
+                           </div>
+                           <p class="text-center">
+                              <span *ngIf="item.isSuccess"><i class="glyphicon glyphicon-ok"></i></span>
+                              <span *ngIf="item.isCancel"><i class="glyphicon glyphicon-ban-circle"></i></span>
+                              <span *ngIf="item.isError"><i class="glyphicon glyphicon-remove"></i></span>
+                           </p>
+                           <button type="button" class="btn btn-success"
+                           (click)="item.upload()" [disabled]="item.isReady || item.isUploading || item.isSuccess">
+                           <span class="glyphicon glyphicon-upload"></span> Upload
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="col-md-8">
+                     <fieldset>
+                        <div class="form-group">
+                           <input 
+                              class="form-control" 
+                              placeholder="Name" 
+                              id="name" 
+                              name="name" 
+                              ngModel 
+                              type="text" 
+                              #name="ngModel"
+                              required >
+                           <p class="help-block invalid" *ngIf="!name.valid && name.touched" >Please enter name</p>
+                        </div>
+                        <div class="form-group">
+                           <textarea 
+                              class="form-control" 
+                              placeholder="recipeDescription" 
+                              id="recipeDescription" 
+                              name="recipeDescription" 
+                              ngModel 
+                              required
+                              #recipeDescription="ngModel"
+                              >
+                              </textarea>
+                           <p class="help-block invalid" *ngIf="!recipeDescription.valid && recipeDescription.touched" >Please enter a valid email!</p>
+                        </div>
+                        <div class="form-group">
+                           <input class="form-control" 
+                              placeholder="Preparation Time" 
+                              id="recipePreparationTime" 
+                              name="recipePreparationTime" 
+                              ngModel 
+                              type="number" 
+                              #recipePreparationTime="ngModel"
+                              required>
+                           <p class="help-block invalid" *ngIf="!recipePreparationTime.valid && recipePreparationTime.touched" >Please enter password</p>
+                        </div>
+                        <!-- Change this to a button or input when using this as a form -->
+                        <button type="submit" class="btn btn-lg btn-success pull-right" [disabled] = "!f.valid" >Sign Up</button>
+                     </fieldset>
+                  </div>
+               </div>
+               </form>
+            </div>
+         </div>
+      </div>
+   </div>
 </div>

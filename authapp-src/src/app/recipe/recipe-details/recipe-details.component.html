@@ -1,3 +1,262 @@
-<p>
-  recipe-details works!
-</p>
+<div class="container" *ngIf="recipes" >
+                <div class="row">
+                    <!-- start sidebar -->
+                    <div class="col-sm-4">
+                        <figure>
+                                        <img class="recipeImg" [src]="recipes.recipeImage"  alt="">
+                                    </figure>
+                    </div><!-- end col -->
+                    <!-- end sidebar -->
+                    <div class="col-sm-8">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <h2 class="title">{{recipes.name}}</h2>
+                                   <div class="recipe-meta">
+                            <ul>
+                                
+                                <li>Prep Time<strong>
+                                    <i class="fa fa-clock-o"></i> 10 minutes</strong> </li>
+                                <li>Cook Time<strong>
+                                    <i class="fa fa-clock-o"></i> 10 minutes</strong> </li>
+                                <li>Serving<strong>
+                                    For 8 People </strong></li>
+                                <li>Difficulty<strong>
+                                                                                Easy                                                                            
+                                    </strong> 
+                                </li>
+                                                            </ul>
+                          
+                        </div>
+                            </div><!-- end col -->
+                        </div><!-- end row -->
+                        
+                        <hr class="spacer-5">
+                       
+                       
+                        
+                        <div class="row">
+                            <div class="col-sm-12">
+                               <h3>Description</h3>
+                                <p>{{recipes.recipeDescription}}</p>
+                                
+                                <hr class="spacer-15">
+                              
+                                
+                                <ul class="list list-inline">
+                                    <li><button type="button" class="btn btn-default btn-md round"><i class="fa fa-shopping-basket mr-5"></i>Add to Cart</button></li>
+                                    <li><button type="button" class="btn btn-gray btn-md round"><i class="fa fa-heart mr-5"></i>Add to Wishlist</button></li>
+                                    <li>Share this product: </li>
+                                    <li>
+                                        <ul class="social-icons style1">
+                                            <li class="facebook"><a href="javascript:void(0);"><i class="fa fa-facebook"></i></a></li>
+                                            <li class="twitter"><a href="javascript:void(0);"><i class="fa fa-twitter"></i></a></li>
+                                            <li class="pinterest"><a href="javascript:void(0);"><i class="fa fa-pinterest"></i></a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div><!-- end col -->
+                        </div><!-- end row -->
+                    </div><!-- end col -->
+                </div><!-- end row -->
+                
+                <hr class="spacer-60">
+                <div class="row">
+                          <div class="col-md-6 col-sm-6">
+                            <h3 class="section-title">Recipe Ingredient</h3>
+                            <div class="ingredients-list">
+                                <ul class="ingredient-check"><li class="active">  <span>      <input type="checkbox" value="">  </span>380g can creamed corn</li><li class="active">  <span>      <input type="checkbox" value="">  </span>2 tablespoons soy sauce</li><li class="active">  <span>      <input type="checkbox" value="">  </span>100g spaghetti</li><li class="active">  <span>      <input type="checkbox" value="">  </span>5 tablespoons water</li><li>  <span>      <input type="checkbox" value="">  </span>1 drop sesame oil</li><li>  <span>      <input type="checkbox" value="">  </span>2 spring onions, thinly sliced diagonally</li><li>  <span>      <input type="checkbox" value="">  </span>some white peppper</li></ul>					        </div>
+                           </div>
+                           <div class="col-md-6 col-sm-6">
+                            <div class="directions">
+                            <!-- Directions -->
+                                <h3 class="section-title">Instructions</h3>
+                                <div class="instructions">
+                                                <ol>
+                            <li> Bring to boil chicken stock into a pot together with ginger and knotted spring onion on medium flame. </li>
+                            <li>Tilt the lid a little to ensure the stock does not overflow.</li>
+                            <li>Add the noodles to the soup mixture. Simmer, uncovered, for 1 min.</li>
+                            <li>Add the choy sum, chicken and half the spring onion to the soup. </li>
+                            <li>Lower the heat, add a tiny drop of sesame oil and white pepper. </li>
+                            <li>Serve with lime wedges.</li>
+                        </ol>
+                                            </div>
+                            </div>
+                           </div>                    
+                        </div>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-3">
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs style2 tabs-left">
+                            <li class="active"><a href="#description" data-toggle="tab">Additional Info</a></li>
+                            <li><a href="#reviews" data-toggle="tab">Reviews (4)</a></li>
+                        </ul>
+                    </div><!-- end col -->
+                    <div class="col-xs-12 col-sm-9">
+                        <!-- Tab panes -->
+                        <div class="tab-content style2">
+                            <div class="tab-pane active" id="description">
+                                <h5>Additional Info</h5>
+                                <p>Vestibulum tellus justo, vulputate ac nunc eu, laoreet pellentesque erat. 
+                                    Nulla in fringilla ex. Nulla finibus rutrum lorem vehicula facilisis. 
+                                    Sed ornare congue mi, et volutpat diam. Suspendisse eget augue id magna placerat dignissim. 
+                                    Fusce at turpis neque. Nullam commodo consequat risus et iaculis.
+                                </p>
+                                
+                                <hr class="spacer-15">
+                                
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-6">
+                                        <dl class="dl-horizontal">
+                                            <dt>Dimensions</dt>
+                                            <dd>120 x 75 x 90 cm</dd>
+                                            <dt>Colors</dt>
+                                            <dd>white, black, brown</dd>
+                                            <dt>Materials</dt>
+                                            <dd>cotton</dd>
+                                        </dl>
+                                    </div><!-- end col -->
+                                    <div class="col-sm-12 col-md-6">
+                                        <dl class="dl-horizontal">
+                                            <dt>Weight</dt>
+                                            <dd>1.65 kg</dd>
+                                            <dt>Manufacturer</dt>
+                                            <dd>Istanbul</dd>
+                                        </dl>
+                                    </div><!-- end col -->
+                                </div><!-- end row -->
+                            </div><!-- end tab-pane -->
+                            <div class="tab-pane" id="reviews">
+                                <h5>4 Review for "Lorem ipsum dolor sit amet"</h5>
+                                
+                                <hr class="spacer-10 no-border">
+                                
+                                <div class="comments">
+                                    <div class="comment-image">
+                                        <figure>
+                                            <img src="img/team/team_01.jpg" alt="">
+                                        </figure>
+                                    </div><!-- end comments-image -->
+                                    <div class="comment-content">
+                                        <div class="comment-content-head">
+                                            <h6 class="comment-title">Lorem ipsum dolor sit</h6>
+                                            <ul class="list list-inline comment-meta">
+                                                <li>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                </li>
+                                            </ul>
+                                        </div><!-- end comment-content-head -->
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae sequi ipsa fugit officia eos! Sapiente laboriosam molestiae praesentium ducimus culpa. Magnam, odit, optio. Possimus similique eligendi explicabo, dolore, beatae sequi.</p>
+                                        <cite>Joe Doe</cite>
+                                    </div><!-- end comment-content -->
+                                </div><!-- end comments -->
+                                
+                                <div class="comments">
+                                    <div class="comment-image">
+                                        <figure>
+                                            <img src="img/team/team_02.jpg" alt="">
+                                        </figure>
+                                    </div><!-- end comments-image -->
+                                    <div class="comment-content">
+                                        <div class="comment-content-head">
+                                            <h6 class="comment-title">Lorem ipsum dolor sit</h6>
+                                            <ul class="list list-inline comment-meta">
+                                                <li>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star-half-o text-warning"></i>
+                                                </li>
+                                            </ul>
+                                        </div><!-- end comment-content-head -->
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae sequi ipsa fugit officia eos! Sapiente laboriosam molestiae praesentium ducimus culpa. Magnam, odit, optio.</p>
+                                        <cite>Joe Doe</cite>
+                                    </div><!-- end comment-content -->
+                                </div><!-- end comments -->
+                                
+                                <div class="comments">
+                                    <div class="comment-image">
+                                        <figure>
+                                            <img src="img/team/team_03.jpg" alt="">
+                                        </figure>
+                                    </div><!-- end comments-image -->
+                                    <div class="comment-content">
+                                        <div class="comment-content-head">
+                                            <h6 class="comment-title">Lorem ipsum dolor sit</h6>
+                                            <ul class="list list-inline comment-meta">
+                                                <li>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star-o text-warning"></i>
+                                                </li>
+                                            </ul>
+                                        </div><!-- end comment-content-head -->
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae sequi ipsa fugit officia eos! Sapiente laboriosam molestiae praesentium ducimus culpa. Magnam, odit, optio.</p>
+                                        <cite>Jane Doe</cite>
+                                    </div><!-- end comment-content -->
+                                </div><!-- end comments -->
+                                
+                                <div class="comments">
+                                    <div class="comment-image">
+                                        <figure>
+                                            <img src="img/team/team_04.jpg" alt="">
+                                        </figure>
+                                    </div><!-- end comments-image -->
+                                    <div class="comment-content">
+                                        <div class="comment-content-head">
+                                            <h6 class="comment-title">Lorem ipsum dolor sit</h6>
+                                            <ul class="list list-inline comment-meta">
+                                                <li>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star text-warning"></i>
+                                                    <i class="fa fa-star-half-empty text-warning"></i>
+                                                    <i class="fa fa-star-o text-warning"></i>
+                                                </li>
+                                            </ul>
+                                        </div><!-- end comment-content-head -->
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae sequi ipsa fugit officia eos! Sapiente laboriosam molestiae praesentium ducimus culpa. Magnam, odit, optio.</p>
+                                        <cite>John Doe</cite>
+                                    </div><!-- end comment-content -->
+                                </div><!-- end comments -->
+                                
+                                <hr class="spacer-30">
+                                
+                                <h5>Add a review</h5>
+                                <p>How do you rate this product?</p>
+                                        
+                                <hr class="spacer-5 no-border">
+
+                                <form>
+                                    <div class="rating-container rating-sm rating-animate"><div class="clear-rating clear-rating-active" title="Clear"><i class="glyphicon glyphicon-minus-sign"></i></div><div class="rating"><span class="empty-stars"><span class="star"><i class="glyphicon glyphicon-star-empty"></i></span><span class="star"><i class="glyphicon glyphicon-star-empty"></i></span><span class="star"><i class="glyphicon glyphicon-star-empty"></i></span><span class="star"><i class="glyphicon glyphicon-star-empty"></i></span><span class="star"><i class="glyphicon glyphicon-star-empty"></i></span></span><span class="filled-stars" style="width: 100%;"><span class="star"><i class="glyphicon glyphicon-star"></i></span><span class="star"><i class="glyphicon glyphicon-star"></i></span><span class="star"><i class="glyphicon glyphicon-star"></i></span><span class="star"><i class="glyphicon glyphicon-star"></i></span><span class="star"><i class="glyphicon glyphicon-star"></i></span></span></div><div class="caption"><span class="label label-success">Five Stars</span></div><input type="text" class="rating hide" value="5" data-size="sm" title=""></div>
+                                </form>
+
+                                <hr class="spacer-10 no-border">
+
+                                <div class="form-group">
+                                    <label for="reviewName">Name</label>
+                                    <input type="text" id="reviewName" class="form-control input-md" placeholder="Your Name">
+                                </div><!-- end form-group -->
+                                <div class="form-group">
+                                    <label for="reviewEmail">E-mail</label>
+                                    <input type="text" id="reviewEmail" class="form-control input-md" placeholder="Your E-mail">
+                                </div><!-- end form-group -->
+                                <div class="form-group">
+                                    <label for="reviewMessage">Review</label>
+                                    <textarea id="reviewMessage" rows="5" class="form-control" placeholder="Your review"></textarea>
+                                </div><!-- end form-group -->
+                                <div class="form-group">
+                                    <input type="submit" class="btn btn-default round btn-md" value="Submit Review">
+                                </div><!-- end form-group -->
+                            </div><!-- end tab-pane -->
+                        </div><!-- end tab-content -->
+                    </div><!-- end col -->
+                </div><!-- end row -->
+               
+            </div>
