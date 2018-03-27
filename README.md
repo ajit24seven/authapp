@@ -5,7 +5,7 @@ Checkout this repo, install dependencies, then start the gulp process with the f
 
 ```
 > Intall mongodb
-> mongod
+> Open command run - mongod
 > git clone https://github.com/ajit24seven/authapp.git
 > cd authapp
 > npm install
