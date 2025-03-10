@@ -1,0 +1,97 @@
+import React, { useState, useMemo } from "react";
+
+const sampleData = [
+  { Name: "Alice", Age: 25, Country: "USA" },
+  { Name: "Alice", Age: 35, Country: "USA1" },
+  { Name: "Alice", Age: 45, Country: "USA2" },
+  { Name: "Bob", Age: 30, Country: "Canada" },
+  { Name: "Charlie", Age: 22, Country: "UK" },
+  { Name: "David", Age: 35, Country: "USA" },
+  { Name: "Eve", Age: 28, Country: "Germany" },
+];
+
+const TableWithFilter = ({ data = sampleData }) => {
+  const [filters, setFilters] = useState({});
+  const [lastFilteredColumn, setLastFilteredColumn] = useState(null);
+  const [previousFilteredValues, setPreviousFilteredValues] = useState({});
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return <p className="text-center p-4">No data available</p>;
+  }
+
+  // Get all unique values from the original dataset (for dropdowns)
+  const getUniqueValues = (column) => [...new Set(data.map((row) => row[column]))];
+
+  // Get filtered values based on active filters
+  const filteredData = useMemo(() => {
+    return data.filter((row) =>
+      Object.keys(filters).every((column) =>
+        filters[column] ? row[column]?.toString().toLowerCase().includes(filters[column].toLowerCase()) : true
+      )
+    );
+  }, [data, filters]);
+
+  // Get unique values for dropdowns (for filtering other columns)
+  const getFilteredValues = (column) => [...new Set(filteredData.map((row) => row[column]))];
+
+  // Handle input change with debounce
+  const handleFilterChange = (column, value) => {
+    setFilters((prev) => ({ ...prev, [column]: value }));
+    setLastFilteredColumn(column); // Track the most recently changed column
+
+    // Store previously filtered values for the last changed column
+    setPreviousFilteredValues((prev) => ({
+      ...prev,
+      [column]: prev[column] ? prev[column] : getFilteredValues(column),
+    }));
+  };
+
+  
+  return (
+    <div className="overflow-x-auto p-4">
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-200">
+            {Object.keys(data[0] || {}).map((column) => {
+              console.log(column, lastFilteredColumn)
+              const options =
+                column === lastFilteredColumn
+                  ? previousFilteredValues[column] || getFilteredValues(column) // Keep previously filtered values
+                  : getFilteredValues(column); // Update dynamically
+
+              return (
+                <th key={column} className="border border-gray-300 p-2">
+                  <div className="flex flex-col">
+                    <span>{column}{lastFilteredColumn}</span>
+                    {JSON.stringify(previousFilteredValues)}
+                    <select
+                      className="border p-1 text-sm mt-1"
+                      onChange={(e) => handleFilterChange(column, e.target.value)}
+                    >
+                      {options.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {filteredData.map((row, index) => (
+            <tr key={index} className="border border-gray-300">
+              {Object.values(row).map((cell, i) => (
+                <td key={i} className="border border-gray-300 p-2">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default TableWithFilter;
