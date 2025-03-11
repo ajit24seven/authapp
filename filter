@@ -1,0 +1,7 @@
+const filteredData = sampleData.filter((row) =>
+        Object.keys(newFilters).every((col) =>
+          newFilters[col].length > 0
+            ? newFilters[col].some((val) => row[col]?.toString().toLowerCase().includes(val.toLowerCase()))
+            : true
+        )
+      );
