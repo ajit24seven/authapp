@@ -1,0 +1,60 @@
+import { create } from "zustand";
+
+export const useFilterStore = create((set, get) => ({
+  data: [],
+  filters: {},
+  lastFilteredColumn: null,
+  previousFilteredValues: {},
+  currentPage: 1,
+  pageSize: 10, // Show 10 records per page
+
+  initializeFilters: (initialData) => {
+    set({ data: initialData, currentPage: 1 });
+  },
+
+  setFilter: (column, value) => {
+    set((state) => {
+      const newFilters = { ...state.filters, [column]: value };
+      const filteredData = get().getFilteredData(newFilters);
+
+      return {
+        filters: newFilters,
+        lastFilteredColumn: column,
+        previousFilteredValues: {
+          ...state.previousFilteredValues,
+          [column]: state.previousFilteredValues[column] || get().getUniqueValues(filteredData, column),
+        },
+        currentPage: 1, // Reset to first page when filtering
+      };
+    });
+  },
+
+  getFilteredData: (filters = get().filters) => {
+    return get().data.filter((row) =>
+      Object.keys(filters).every((col) =>
+        filters[col] ? row[col]?.toString().toLowerCase().includes(filters[col].toLowerCase()) : true
+      )
+    );
+  },
+
+  getPaginatedData: () => {
+    const { getFilteredData, currentPage, pageSize } = get();
+    const filteredData = getFilteredData();
+    const start = (currentPage - 1) * pageSize;
+    return filteredData.slice(start, start + pageSize);
+  },
+
+  getUniqueValues: (filteredData, column) => {
+    return [...new Set(filteredData.map((row) => row[column]))];
+  },
+
+  getDropdownOptions: (column) => {
+    const { lastFilteredColumn, previousFilteredValues, getFilteredData, getUniqueValues } = get();
+    const filteredData = getFilteredData();
+    return column === lastFilteredColumn
+      ? previousFilteredValues[column] || []
+      : getUniqueValues(filteredData, column);
+  },
+
+  setPage: (newPage) => set({ currentPage: newPage }),
+}));
