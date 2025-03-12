@@ -1,0 +1,92 @@
+import React, { useState } from "react";
+import { create } from "zustand";
+
+const sampleData = [
+  { Name: "Alice", Age: 25, Country: "USA" },
+  { Name: "Alice", Age: 35, Country: "USA1" },
+  { Name: "Alice", Age: 45, Country: "USA2" },
+  { Name: "Bob", Age: 30, Country: "Canada" },
+  { Name: "Charlie", Age: 22, Country: "UK" },
+  { Name: "David", Age: 35, Country: "USA" },
+  { Name: "Eve", Age: 28, Country: "Germany" },
+];
+
+const useFilterStore = create((set, get) => ({
+  filters: {},
+  filteredData: sampleData,
+  lastInteractedColumn: null,
+  setFilters: (column, values) => {
+    set((state) => {
+      const newFilters = { ...state.filters, [column]: values };
+      
+      const newFilteredData = sampleData.filter((row) =>
+        Object.keys(newFilters).every((col) => {
+          const filterValues = newFilters[col];
+          return !filterValues || filterValues.length === 0 || filterValues.includes(row[col]?.toString());
+        })
+      );
+      
+      return {
+        filters: newFilters,
+        filteredData: newFilteredData,
+        lastInteractedColumn: column,
+      };
+    });
+  },
+  getFilteredOptions: (column) => {
+    const { filters, filteredData } = get();
+    
+    let availableData = sampleData;
+    Object.keys(filters).forEach((col) => {
+      if (col !== column && filters[col]?.length) {
+        availableData = availableData.filter((row) => filters[col].includes(row[col]?.toString()));
+      }
+    });
+    return [...new Set(availableData.map((row) => row[column]))];
+  },
+}));
+
+const TableWithFilter = () => {
+  const { filters, setFilters, filteredData, getFilteredOptions } = useFilterStore();
+
+  return (
+    <div className="overflow-x-auto p-4">
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-200">
+            {Object.keys(sampleData[0] || {}).map((column) => (
+              <th key={column} className="border border-gray-300 p-2">
+                <div className="flex flex-col">
+                  <span>{column}</span>
+                  <select
+                    multiple
+                    className="border p-1 text-sm mt-1"
+                    value={filters[column] || []}
+                    onChange={(e) => setFilters(column, Array.from(e.target.selectedOptions, (option) => option.value))}
+                  >
+                    {getFilteredOptions(column).map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {filteredData.map((row, index) => (
+            <tr key={index} className="border border-gray-300">
+              {Object.entries(row).map(([key, cell]) => (
+                <td key={key} className="border border-gray-300 p-2">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default TableWithFilter;
