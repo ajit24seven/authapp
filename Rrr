@@ -21,6 +21,48 @@ const b = [
 ];
 
 console.time("Merge Time");
+
+const mergeById = (a, b) => {
+    const map = new Map();
+
+    // Add all records from master list `b` into Map
+    for (const obj of b) {
+        map.set(obj.id, obj);
+    }
+
+    // Merge `client` records from `a`
+    const mergedClients = a.client.map(client => 
+        map.has(client.id) ? { ...client, ...map.get(client.id) } : client
+    );
+
+    // Merge `associate` records from `a`
+    const mergedAssociates = a.associate.map(associate => 
+        map.has(associate.id) ? { ...associate, ...map.get(associate.id) } : associate
+    );
+
+    return { client: mergedClients, associate: mergedAssociates };
+};
+
+// Example Data
+const a = {
+    client: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }],
+    associate: [{ id: 3, name: "Charlie" }, { id: 4, name: "David" }]
+};
+
+const b = [
+    { id: 1, city: "London" }, 
+    { id: 2, city: "New York" }, 
+    { id: 3, city: "Berlin" }, 
+    { id: 4, city: "Paris" },
+    { id: 5, city: "Tokyo" } // Extra record (won't affect merge)
+];
+
+console.time("Merge Time");
+const mergedData = mergeById(a, b);
+console.timeEnd("Merge Time");
+
+console.log(mergedData);
+
 const mergedData = mergeById(a, b);
 console.timeEnd("Merge Time");
 
