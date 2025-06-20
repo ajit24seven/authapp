@@ -1,0 +1,260 @@
+// advancedColumnFactory.ts
+import {
+  ColumnDef,
+  FilterFn,
+} from '@tanstack/react-table';
+import { rankItem } from '@tanstack/match-sorter-utils';
+import {
+  TextColumnFilter,
+  SelectColumnFilter,
+  DateColumnFilter,
+  NumberRangeFilter,
+} from './filtersUI';
+import { fuzzyFilter } from './filters';
+
+type ColumnType = 'text' | 'select' | 'date' | 'number' | 'multiselect' | 'range';
+
+interface BaseColumnConfig<TData> {
+  id: string;
+  accessorKey: keyof TData;
+  header: string | ((ctx: any) => React.ReactNode);
+  type: ColumnType;
+
+  enableSorting?: boolean;
+  enableColumnFilter?: boolean;
+
+  filterOptions?: string[]; // for select/multiselect
+  customFilterFn?: FilterFn<TData>;
+  formatValue?: (value: any, row: TData) => React.ReactNode;
+  editable?: boolean;
+  validationRules?: ((value: any, row: TData) => string | null)[];
+}
+
+export function buildColumn<TData>(config: BaseColumnConfig<TData>): ColumnDef<TData, any> {
+  const {
+    id,
+    accessorKey,
+    header,
+    type,
+    enableSorting = true,
+    enableColumnFilter = true,
+    filterOptions = [],
+    customFilterFn,
+    formatValue,
+    editable = false,
+    validationRules = [],
+  } = config;
+
+  const base: ColumnDef<TData, any> = {
+    id,
+    accessorKey,
+    header,
+    enableSorting,
+    enableColumnFilter,
+    cell: ({ getValue, row }) => {
+      const value = getValue();
+      if (formatValue) return formatValue(value, row.original);
+      return value;
+    },
+    meta: {
+      editable,
+      validationRules,
+    },
+  };
+
+  const filterMeta = {
+    text: {
+      filterFn: fuzzyFilter,
+      filterElement: TextColumnFilter,
+    },
+    select: {
+      filterFn: (row, columnId, value) => {
+        return value ? row.getValue(columnId) === value : true;
+      },
+      filterElement: () => SelectColumnFilter({ options: filterOptions }),
+    },
+    multiselect: {
+      filterFn: (row, columnId, value: string[]) => {
+        if (!value || !Array.isArray(value)) return true;
+        return value.includes(row.getValue(columnId));
+      },
+      filterElement: () => SelectColumnFilter({ options: filterOptions, multi: true }),
+    },
+    date: {
+      filterFn: (row, columnId, value) => {
+        const rowDate = new Date(row.getValue(columnId));
+        const filterDate = new Date(value);
+        return rowDate.toDateString() === filterDate.toDateString();
+      },
+      filterElement: DateColumnFilter,
+    },
+    number: {
+      filterFn: (row, columnId, value) => {
+        return row.getValue(columnId) === Number(value);
+      },
+      filterElement: TextColumnFilter,
+    },
+    range: {
+      filterFn: (row, columnId, [min, max]) => {
+        const val = row.getValue(columnId);
+        return val >= min && val <= max;
+      },
+      filterElement: NumberRangeFilter,
+    },
+  };
+
+  const filterConfig = filterMeta[type] || {};
+
+  return {
+    ...base,
+    filterFn: customFilterFn || filterConfig.filterFn,
+    meta: {
+      ...base.meta,
+      filterElement: filterConfig.filterElement,
+    },
+  };
+}
+
+
+
+
+===========
+// filtersUI.tsx
+
+export function NumberRangeFilter({ column }: any) {
+  const [min, max] = column.getFilterValue() || ['', ''];
+  return (
+    <div className="flex gap-1">
+      <input
+        type="number"
+        value={min}
+        onChange={(e) =>
+          column.setFilterValue([e.target.value, max])
+        }
+        className="input w-full"
+        placeholder="Min"
+      />
+      <input
+        type="number"
+        value={max}
+        onChange={(e) =>
+          column.setFilterValue([min, e.target.value])
+        }
+        className="input w-full"
+        placeholder="Max"
+      />
+    </div>
+  );
+}
+
+export function SelectColumnFilter({ column, options = [], multi = false }: any) {
+  const value = column.getFilterValue() || (multi ? [] : '');
+  const handleChange = (e: any) => {
+    const selected = Array.from(e.target.selectedOptions, (o: any) => o.value);
+    column.setFilterValue(multi ? selected : e.target.value);
+  };
+
+  return (
+    <select
+      multiple={multi}
+      value={value}
+      onChange={handleChange}
+      className="select w-full"
+    >
+      {!multi && <option value="">All</option>}
+      {options.map((opt: string) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  );
+}
+==========
+
+// filtersUI.tsx
+
+export function NumberRangeFilter({ column }: any) {
+  const [min, max] = column.getFilterValue() || ['', ''];
+  return (
+    <div className="flex gap-1">
+      <input
+        type="number"
+        value={min}
+        onChange={(e) =>
+          column.setFilterValue([e.target.value, max])
+        }
+        className="input w-full"
+        placeholder="Min"
+      />
+      <input
+        type="number"
+        value={max}
+        onChange={(e) =>
+          column.setFilterValue([min, e.target.value])
+        }
+        className="input w-full"
+        placeholder="Max"
+      />
+    </div>
+  );
+}
+
+export function SelectColumnFilter({ column, options = [], multi = false }: any) {
+  const value = column.getFilterValue() || (multi ? [] : '');
+  const handleChange = (e: any) => {
+    const selected = Array.from(e.target.selectedOptions, (o: any) => o.value);
+    column.setFilterValue(multi ? selected : e.target.value);
+  };
+
+  return (
+    <select
+      multiple={multi}
+      value={value}
+      onChange={handleChange}
+      className="select w-full"
+    >
+      {!multi && <option value="">All</option>}
+      {options.map((opt: string) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  );
+}
+============
+
+const columns = [
+  buildColumn<User>({
+    id: 'name',
+    accessorKey: 'name',
+    header: 'User Name',
+    type: 'text',
+    editable: true,
+    validationRules: [(v) => !v && 'Required'],
+  }),
+  buildColumn<User>({
+    id: 'age',
+    accessorKey: 'age',
+    header: 'Age',
+    type: 'range',
+    editable: true,
+    validationRules: [(v) => v < 18 && 'Must be adult'],
+  }),
+  buildColumn<User>({
+    id: 'role',
+    accessorKey: 'role',
+    header: 'Role',
+    type: 'multiselect',
+    filterOptions: ['Admin', 'User', 'Viewer'],
+  }),
+  buildColumn<User>({
+    id: 'createdAt',
+    accessorKey: 'createdAt',
+    header: 'Created',
+    type: 'date',
+    formatValue: (val) => new Date(val).toLocaleDateString(),
+  }),
+];
+=========
