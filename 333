@@ -1,0 +1,208 @@
+// EditableTable.tsx
+import React, { useState } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  ColumnDef,
+} from '@tanstack/react-table';
+import { z } from 'zod';
+
+// Sample User type
+interface User {
+  id: string;
+  name: string;
+  age: number;
+}
+
+// ---------------------- Validation ----------------------
+const userSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  age: z.number().min(18, 'Must be 18+'),
+});
+
+// Validation rule
+type ValidationRule<T> = {
+  validate: (value: any, row: T) => boolean;
+  message: string;
+};
+
+const zodToValidationRules = <T,>(
+  schema: z.ZodObject<any>,
+  field: keyof T
+): ValidationRule<T>[] => {
+  return [
+    {
+      validate: (value) => {
+        const result = schema.pick({ [field]: true }).safeParse({ [field]: value });
+        return result.success;
+      },
+      message: (schema.shape[field] as any)._def.errorMap?.()?.message || 'Invalid',
+    },
+  ];
+};
+
+// ---------------------- Meta ----------------------
+type ColumnMeta<T> = {
+  editable?: boolean;
+  validationRules?: ValidationRule<T>[];
+  getErrorMessage?: (row: T) => string | null;
+  renderEdit?: (
+    value: any,
+    row: T,
+    onChange: (val: any) => void
+  ) => React.ReactNode;
+};
+
+// ---------------------- Column Builder ----------------------
+function buildColumn<T>(
+  col: ColumnDef<T, any>,
+  meta?: Partial<ColumnMeta<T>>
+): ColumnDef<T, any> {
+  return {
+    ...col,
+    cell: ({ getValue, row, column }) => {
+      const value = getValue();
+      const columnMeta = column.columnDef.meta as ColumnMeta<T>;
+      const error = columnMeta?.getErrorMessage?.(row.original);
+
+      const [editingValue, setEditingValue] = useState(value);
+
+      if (columnMeta?.editable && columnMeta?.renderEdit) {
+        return (
+          <div className="flex flex-col">
+            {columnMeta.renderEdit(editingValue, row.original, setEditingValue)}
+            {error && <span className="text-red-500 text-xs">{error}</span>}
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex flex-col">
+          <span>{value}</span>
+          {error && <span className="text-red-500 text-xs">{error}</span>}
+        </div>
+      );
+    },
+    meta,
+  };
+}
+
+// ---------------------- Component ----------------------
+export default function EditableTable() {
+  const [data, setData] = useState<User[]>([
+    { id: '1', name: '', age: 17 },
+    { id: '2', name: 'Jane', age: 25 },
+  ]);
+
+  const [rowErrors, setRowErrors] = useState<Record<string, Record<string, string>>>({});
+
+  const getError = (rowId: string, columnId: string) => {
+    return rowErrors[rowId]?.[columnId] || null;
+  };
+
+  const validateRow = (row: User) => {
+    const errors: Record<string, string> = {};
+
+    const rules: Record<string, ValidationRule<User>[]> = {
+      name: zodToValidationRules(userSchema, 'name'),
+      age: zodToValidationRules(userSchema, 'age'),
+    };
+
+    Object.entries(rules).forEach(([col, ruleList]) => {
+      for (const rule of ruleList) {
+        if (!rule.validate(row[col as keyof User], row)) {
+          errors[col] = rule.message;
+          break;
+        }
+      }
+    });
+
+    setRowErrors((prev) => ({ ...prev, [row.id]: errors }));
+  };
+
+  const columns = [
+    buildColumn<User>(
+      {
+        id: 'name',
+        accessorKey: 'name',
+        header: 'Name',
+      },
+      {
+        editable: true,
+        validationRules: zodToValidationRules(userSchema, 'name'),
+        getErrorMessage: (row) => getError(row.id, 'name'),
+        renderEdit: (value, row, onChange) => (
+          <input
+            className="border px-2 py-1"
+            value={value}
+            onChange={(e) => {
+              const val = e.target.value;
+              onChange(val);
+              const updated = { ...row, name: val };
+              validateRow(updated);
+            }}
+          />
+        ),
+      }
+    ),
+    buildColumn<User>(
+      {
+        id: 'age',
+        accessorKey: 'age',
+        header: 'Age',
+      },
+      {
+        editable: true,
+        validationRules: zodToValidationRules(userSchema, 'age'),
+        getErrorMessage: (row) => getError(row.id, 'age'),
+        renderEdit: (value, row, onChange) => (
+          <input
+            type="number"
+            className="border px-2 py-1"
+            value={value}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              onChange(val);
+              const updated = { ...row, age: val };
+              validateRow(updated);
+            }}
+          />
+        ),
+      }
+    ),
+  ];
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <table className="min-w-full border border-gray-300">
+      <thead>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <th key={header.id} className="border p-2">
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </th>
+            ))}
+          </tr>
+        ))}
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map((row) => (
+          <tr key={row.id}>
+            {row.getVisibleCells().map((cell) => (
+              <td key={cell.id} className="border p-2">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
