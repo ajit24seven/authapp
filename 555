@@ -1,0 +1,179 @@
+// --- columnSchema.js ---
+export const columnSchema = [
+  {
+    accessorKey: 'username',
+    header: 'Username',
+    id: 'username',
+    meta: {
+      inputType: 'text',
+      placeholder: 'Enter username',
+      validation: [
+        { type: 'required', message: 'Username is required' },
+        { type: 'minLength', value: 3, message: 'Minimum 3 characters' }
+      ]
+    }
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    id: 'status',
+    meta: {
+      inputType: 'radio',
+      options: ['Active', 'Inactive'],
+      validation: [
+        { type: 'required', message: 'Status is required' }
+      ]
+    }
+  }
+];
+
+// --- buildColumns.ts ---
+import { createColumnHelper } from '@tanstack/table-core';
+import { html } from 'lit';
+import { inputRegistry } from './inputs/registry';
+
+const columnHelper = createColumnHelper();
+
+export function buildColumns(schema, controller) {
+  return schema.map(col =>
+    columnHelper.accessor(col.accessorKey, {
+      id: col.id,
+      header: col.header,
+      cell: info => {
+        const rowIndex = info.row.index;
+        const colId = col.id;
+        const value = info.getValue();
+        const error = controller.errors.get(rowIndex, colId);
+        const InputTag = inputRegistry[col.meta.inputType];
+
+        return html`
+          <${InputTag}
+            .value=${value}
+            .options=${col.meta.options || []}
+            .placeholder=${col.meta.placeholder || ''}
+            .error=${error}
+            @change=${(e) => {
+              const val = e.detail.value;
+              controller.updateCell(rowIndex, colId, val, col);
+              info.row.original[colId] = val;
+              controller.requestUpdate?.();
+            }}
+          ></${InputTag}>
+        `;
+      },
+      meta: col.meta
+    })
+  );
+}
+
+// --- SmartTable.ts ---
+import { LitElement, html } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnSchema } from './columnSchema';
+import { buildColumns } from './buildColumns';
+import { SmartTableController } from './SmartTableController';
+import {
+  getCoreRowModel,
+  createTableInstance,
+  flexRender
+} from '@tanstack/table-core';
+
+@customElement('smart-table')
+export class SmartTable extends LitElement {
+  @state() data = [
+    { username: '', status: '' },
+    { username: '', status: '' }
+  ];
+
+  @state() submitting = false;
+  @state() submitSuccess = false;
+
+  controller = new SmartTableController(this.data);
+
+  get columns() {
+    return buildColumns(columnSchema, this.controller);
+  }
+
+  get table() {
+    return createTableInstance({
+      data: this.data,
+      columns: this.columns,
+      getCoreRowModel: getCoreRowModel()
+    });
+  }
+
+  render() {
+    const table = this.table;
+
+    return html`
+      <table>
+        <thead>
+          ${table.getHeaderGroups().map(headerGroup => html`
+            <tr>
+              ${headerGroup.headers.map(header => html`
+                <th>
+                  ${flexRender(header.column.columnDef.header, header.getContext())}
+                </th>
+              `)}
+            </tr>
+          `)}
+        </thead>
+        <tbody>
+          ${table.getRowModel().rows.map(row => html`
+            <tr>
+              ${row.getVisibleCells().map(cell => html`
+                <td data-cell="${row.index}-${cell.column.id}">
+                  ${flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              `)}
+            </tr>
+          `)}
+        </tbody>
+      </table>
+      <button
+        @click=${this.handleSubmit}
+        ?disabled=${this.submitting}
+        style="margin-top: 1rem"
+      >
+        ${this.submitting ? 'Submitting…' : 'Submit'}
+      </button>
+      ${this.submitSuccess
+        ? html`<div style="color: green; font-size: 12px;">Submitted successfully!</div>`
+        : ''}
+    `;
+  }
+
+  async handleSubmit() {
+    this.submitting = true;
+    this.submitSuccess = false;
+
+    const errors = await this.controller.validateAll(this.columns);
+
+    if (errors.length > 0) {
+      console.warn('❌ Validation errors:', errors);
+
+      const first = errors[0];
+      const cell = this.renderRoot.querySelector(`[data-cell="${first.row}-${first.columnId}"]`);
+      cell?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      this.submitting = false;
+      return;
+    }
+
+    await new Promise(r => setTimeout(r, 500));
+    console.log('✅ Submit rows:', this.data);
+
+    const validRows = this.data.filter((_, i) =>
+      !errors.some(err => err.row === i)
+    );
+
+    this.dispatchEvent(new CustomEvent('form-submit', {
+      detail: { data: validRows },
+      bubbles: true,
+      composed: true
+    }));
+
+    this.submitSuccess = true;
+    this.submitting = false;
+  }
+}
