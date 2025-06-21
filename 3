@@ -1,0 +1,387 @@
+// smart-table.ts (with TanStack Table integration + full column properties)
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import {
+  createTable,
+  getCoreRowModel,
+  ColumnDef,
+  Table,
+  TableInstance,
+  Row
+} from '@tanstack/table-core';
+
+// Types
+export type ValidationType = 'required' | 'email' | 'minLength' | 'custom';
+
+export interface ValidationRule {
+  type: ValidationType;
+  message: string;
+  value?: any;
+  customValidator?: (val: any) => boolean;
+}
+
+export interface ColumnMeta {
+  cellRenderer?: (ctx: {
+    value: any;
+    rowIndex: number;
+    row: Row<any>;
+    error?: string;
+    update: (value: any) => void;
+  }) => unknown;
+  inputType: 'text' | 'radio' | 'select';
+  options?: string[];
+  validation?: ValidationRule[];
+  filterRenderer?: (ctx: {
+    value: any;
+    setFilter: (value: any) => void;
+  }) => unknown;
+}
+
+export interface ColumnSchema<T> extends ColumnDef<T> {
+  meta: ColumnMeta;
+}
+
+export interface RowError<T> {
+  [K in keyof T]?: string;
+}
+
+function runValidation(value: any, rules: ValidationRule[] = []): string | null {
+  for (const rule of rules) {
+    switch (rule.type) {
+      case 'required':
+        if (value === null || value === undefined || value.toString().trim() === '') return rule.message;
+        break;
+      case 'email':
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return rule.message;
+        break;
+      case 'minLength':
+        if ((value?.length || 0) < (rule.value as number)) return rule.message;
+        break;
+      case 'custom':
+        if (rule.customValidator && !rule.customValidator(value)) return rule.message;
+        break;
+    }
+  }
+  return null;
+}
+
+@customElement('smart-table')
+export class SmartTable<T extends object> extends LitElement {
+  static styles = css`
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; }
+    .error { color: red; font-size: 0.75rem; }
+    button { margin: 1rem 0; }
+    .radio-group { display: flex; gap: 0.5rem; }
+  `;
+
+  @property({ type: Array }) columns: ColumnDef<T>[] = [];
+  @property({ type: Array }) columnSchema: ColumnSchema<T>[] = [];
+  @property({ type: Array }) data: T[] = [];
+
+  @state() private errors: Record<number, RowError<T>> = {};
+  @state() private table!: TableInstance<T>;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.initTable();
+  }
+
+  private initTable() {
+    const table = createTable().setRowType<T>();
+    this.table = table.createInstance({
+      data: this.data,
+      columns: this.columns,
+      getCoreRowModel: getCoreRowModel()
+    });
+  }
+
+  private updateValue(rowIndex: number, key: keyof T, value: any) {
+    const updatedRow = { ...this.data[rowIndex], [key]: value };
+    this.data = this.data.map((row, i) => (i === rowIndex ? updatedRow : row));
+    this.initTable();
+
+    const col = this.columnSchema.find(c => c.accessorKey === key);
+    const error = runValidation(value, col?.meta?.validation || []);
+
+    this.errors = {
+      ...this.errors,
+      [rowIndex]: {
+        ...this.errors[rowIndex],
+        [key]: error
+      }
+    };
+  }
+
+  private validateRow(row: T): RowError<T> {
+    const rowError: RowError<T> = {};
+    this.columnSchema.forEach(col => {
+      const rules = col.meta?.validation || [];
+      const error = runValidation(row[col.accessorKey], rules);
+      if (error) rowError[col.accessorKey] = error;
+    });
+    return rowError;
+  }
+
+  public validateAll(): void {
+    const allErrors: Record<number, RowError<T>> = {};
+    this.data.forEach((row, index) => {
+      const rowError = this.validateRow(row);
+      if (Object.keys(rowError).length) {
+        allErrors[index] = rowError;
+      }
+    });
+    this.errors = allErrors;
+    console.log('Errors:', this.errors);
+    console.log('Values:', this.data);
+  }
+
+  renderCell(row: Row<T>, rowIndex: number, col: ColumnSchema<T>) {
+    const value = row.original[col.accessorKey];
+    const error = this.errors[rowIndex]?.[col.accessorKey];
+
+    // Auto-generate options if not provided
+    const allValues = this.data.map(row => row[col.accessorKey]);
+    const uniqueOptions = Array.from(new Set(allValues.filter(v => v != null && v !== '')));
+    const options = col.meta.options ?? uniqueOptions;
+
+    const renderError = error ? html`<div class="error">${error}</div>` : html``;
+
+    if (col.meta?.cellRenderer) {
+      return html`${col.meta.cellRenderer({
+        value,
+        rowIndex,
+        row,
+        error,
+        update: (val: any) => this.updateValue(rowIndex, col.accessorKey, val),
+      })}${renderError}`;
+    }
+        return html`
+          <input
+            type="text"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${renderError}
+        `;
+    }
+  }`
+          <div class="radio-group">
+            ${options.map(opt => html`
+              <label>
+                <input
+                  type="radio"
+                  name="${col.accessorKey.toString()}-${rowIndex}"
+                  .checked=${value === opt}
+                  @change=${() => this.updateValue(rowIndex, col.accessorKey, opt)}
+                /> ${opt}
+              </label>
+            `)}
+          </div>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'select':
+        return html`
+          <select
+            .value=${value ?? ''}
+            @change=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLSelectElement).value)}
+          >
+            <option value="">Select...</option>
+            ${col.meta.options?.map(opt => html`<option value=${opt}>${opt}</option>`)}
+          </select>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'textarea':
+        return html`
+          <textarea
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLTextAreaElement).value)}
+          ></textarea>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'number':
+        return html`
+          <input
+            type="number"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      default:
+        return html`
+          <input
+            type="text"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+    }
+  }
+          <div class="radio-group">
+            ${col.meta.options?.map(opt => html`
+              <label>
+                <input
+                  type="radio"
+                  name="${col.accessorKey.toString()}-${rowIndex}"
+                  .checked=${value === opt}
+                  @change=${() => this.updateValue(rowIndex, col.accessorKey, opt)}
+                /> ${opt}
+              </label>
+            `)}
+          </div>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'select':
+        return html`
+          <select
+            .value=${value ?? ''}
+            @change=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLSelectElement).value)}
+          >
+            <option value="">Select...</option>
+            ${col.meta.options?.map(opt => html`<option value=${opt}>${opt}</option>`)}
+          </select>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'textarea':
+        return html`
+          <textarea
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLTextAreaElement).value)}
+          ></textarea>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'number':
+        return html`
+          <input
+            type="number"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      default:
+        return html`
+          <input
+            type="text"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+    }
+          <div class="radio-group">
+            ${col.meta.options?.map(opt => html`
+              <label>
+                <input
+                  type="radio"
+                  name="${col.accessorKey.toString()}-${rowIndex}"
+                  .checked=${value === opt}
+                  @change=${() => this.updateValue(rowIndex, col.accessorKey, opt)}
+                /> ${opt}
+              </label>
+            `)}
+          </div>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'select':
+        return html`
+          <select
+            .value=${value ?? ''}
+            @change=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLSelectElement).value)}
+          >
+            <option value="">Select...</option>
+            ${col.meta.options?.map(opt => html`<option value=${opt}>${opt}</option>`)}
+          </select>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'textarea':
+        return html`
+          <textarea
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLTextAreaElement).value)}
+          ></textarea>
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      case 'number':
+        return html`
+          <input
+            type="number"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+
+      default:
+        return html`
+          <input
+            type="text"
+            .value=${value ?? ''}
+            @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+          />
+          ${error ? html`<div class="error">${error}</div>` : ''}
+        `;
+    }
+        <div class="radio-group">
+          ${col.meta.options?.map(opt => html`
+            <label>
+              <input
+                type="radio"
+                name="${col.accessorKey.toString()}-${rowIndex}"
+                .checked=${value === opt}
+                @change=${() => this.updateValue(rowIndex, col.accessorKey, opt)}
+              /> ${opt}
+            </label>
+          `)}
+        </div>
+        ${error ? html`<div class="error">${error}</div>` : ''}
+      `;
+    }
+
+    return html`
+      <input
+        type="text"
+        .value=${value ?? ''}
+        @input=${(e: Event) => this.updateValue(rowIndex, col.accessorKey, (e.target as HTMLInputElement).value)}
+      />
+      ${error ? html`<div class="error">${error}</div>` : ''}
+    `;
+  }
+
+  render() {
+    const rows = this.table.getRowModel().rows;
+    return html`
+      <button @click=${this.validateAll}>Submit</button>
+      <table>
+        <thead>
+          <tr>
+            ${this.table.getHeaderGroups()[0].headers.map(header => html`<th>${header.column.columnDef.header as string}</th>`)}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, rowIndex) => html`
+            <tr>
+              ${row.getVisibleCells().map(cell => {
+                const col = this.columnSchema.find(c => c.accessorKey === cell.column.id);
+                return html`<td>${col ? this.renderCell(row, rowIndex, col) : ''}</td>`;
+              })}
+            </tr>
+          `)}
+        </tbody>
+      </table>
+    `;
+  }
+}
